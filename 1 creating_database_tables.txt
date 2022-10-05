@@ -9,8 +9,8 @@ postgres=# GRANT ALL PRIVILEGES ON DATABASE vk to gb_user;
  создания),
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
-    category_id INT,
-    manufacturer_id INT,
+    categories_id INT,
+    manufacturers_id INT,
     vendor_code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(50) NOT NULL,
     description VARCHAR(1000) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE categories(
 );
 
 //    производитель товара (id, название, id логотипа, страна происхождения, дата создания),
-CREATE TABLE manufacturer (
+CREATE TABLE manufacturers (
     id SERIAL PRIMARY KEY,
     name VARCHAR(30) NOT NULL UNIQUE,
     brand_logo_id INT UNIQUE,
@@ -56,8 +56,8 @@ CREATE TABLE goods_photos (
 //    отзыв о товаре (id товара, id пользователя, дата создания, рейтинг, содержание отзыва),
 CREATE TABLE reviews (
     id SERIAL PRIMARY KEY,
-    product_id INT NOT NULL,
-    client_id INT NOT NULL,
+    products_id INT NOT NULL,
+    clients_id INT NOT NULL,
     created_at TIMESTAMP,
     ratings_id INT,
     text_content VARCHAR(500)

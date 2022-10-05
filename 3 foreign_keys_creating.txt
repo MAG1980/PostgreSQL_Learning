@@ -1,0 +1,108 @@
+ALTER TABLE products
+  ADD CONSTRAINT products_categories_id_fk
+  FOREIGN KEY (categories_id)
+  REFERENCES categories (id);
+
+ALTER TABLE products
+  ADD CONSTRAINT products_manufacturers_id_fk
+  FOREIGN KEY (manufacturers_id)
+  REFERENCES manufacturers (id);
+
+ALTER TABLE categories
+  ADD CONSTRAINT categories_parent_id_fk
+  FOREIGN KEY (parent_id)
+  REFERENCES categories (id);
+
+ALTER TABLE manufacturers
+  ADD CONSTRAINT manufacturers_brand_logo_id_fk
+  FOREIGN KEY (brand_logo_id)
+  REFERENCES brand_logo (id);
+
+ALTER TABLE reviews
+  ADD CONSTRAINT reviews_products_id_fk
+  FOREIGN KEY (products_id)
+  REFERENCES  products (id);
+
+ALTER TABLE reviews
+  ADD CONSTRAINT reviews_clients_id_fk
+  FOREIGN KEY (clients_id)
+  REFERENCES  clients (id);
+
+ALTER TABLE reviews
+  ADD CONSTRAINT reviews_ratings_id_fk
+  FOREIGN KEY (ratings_id)
+  REFERENCES  ratings (id);
+
+ALTER TABLE clients_photos
+  ADD CONSTRAINT clients_photos_reviews_id_fk
+  FOREIGN KEY (reviews_id)
+  REFERENCES  reviews (id);
+
+ALTER TABLE clients
+  ADD CONSTRAINT clients_avatars_id_fk
+  FOREIGN KEY (avatars_id)
+  REFERENCES  avatars (id);
+
+ALTER TABLE favorites
+  ADD CONSTRAINT favorites_clients_id_fk
+  FOREIGN KEY (clients_id)
+  REFERENCES  clients (id);
+
+ALTER TABLE carts
+  ADD CONSTRAINT carts_clients_id_fk
+  FOREIGN KEY (clients_id)
+  REFERENCES  clients (id);
+
+ALTER TABLE orders
+  ADD CONSTRAINT orders_clients_id_fk
+  FOREIGN KEY (clients_id)
+  REFERENCES  clients (id);
+
+ALTER TABLE orders
+  ADD CONSTRAINT orders_payment_methods_id_fk
+  FOREIGN KEY (payment_methods_id)
+  REFERENCES  payment_methods (id);
+
+ALTER TABLE orders
+  ADD CONSTRAINT orders_pick_up_points_id_fk
+  FOREIGN KEY (pick_up_points_id)
+  REFERENCES  pick_up_points (id);
+
+ALTER TABLE orders
+  ADD CONSTRAINT orders_execution_statuses_id_fk
+  FOREIGN KEY (execution_statuses_id)
+  REFERENCES  execution_statuses(id);
+
+ALTER TABLE orders_products
+  ADD CONSTRAINT orders_products_orders_id_fk
+  FOREIGN KEY (orders_id)
+  REFERENCES  orders (id);
+
+ALTER TABLE orders_products
+  ADD CONSTRAINT orders_products_products_id_fk
+  FOREIGN KEY (products_id)
+  REFERENCES  products (id);
+
+ALTER TABLE carts_products
+  ADD CONSTRAINT carts_products_carts_id_fk
+  FOREIGN KEY (carts_id)
+  REFERENCES  carts (id);
+
+ALTER TABLE carts_products
+  ADD CONSTRAINT carts_products_products_id_fk
+  FOREIGN KEY (products_id)
+  REFERENCES  products (id);
+
+ALTER TABLE favorites_products
+  ADD CONSTRAINT favorites_products_favorites_id_fk
+  FOREIGN KEY (favorites_id)
+  REFERENCES  favorites (id);
+
+ALTER TABLE favorites_products
+  ADD CONSTRAINT favorites_products_products_id_fk
+  FOREIGN KEY (products_id)
+  REFERENCES  products (id);
+
+
+
+
