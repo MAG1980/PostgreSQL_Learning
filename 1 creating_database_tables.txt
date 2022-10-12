@@ -9,8 +9,8 @@ postgres=# GRANT ALL PRIVILEGES ON DATABASE vk to gb_user;
  создания),
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
-    categories_id INT,
-    manufacturers_id INT,
+    product_category_id INT,
+    manufacturer_id INT,
     vendor_code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(50) NOT NULL,
     description VARCHAR(1000) NOT NULL,
@@ -20,12 +20,12 @@ CREATE TABLE products (
     created_at TIMESTAMP
 );
 
-//   категория товара (id категории, название категории, дата создания, id родительской категории),
-CREATE TABLE categories(
+//   категории товара (id категории, название категории, дата создания, id родительской категории),
+CREATE TABLE product_categories(
     id SERIAL PRIMARY KEY,
     name VARCHAR(50),
     created_at TIMESTAMP,
-    parent_id INT
+    parent_category_id INT
 );
 
 //    производитель товара (id, название, id логотипа, страна происхождения, дата создания),
@@ -33,20 +33,20 @@ CREATE TABLE manufacturers (
     id SERIAL PRIMARY KEY,
     name VARCHAR(30) NOT NULL UNIQUE,
     brand_logo_id INT UNIQUE,
-    country VARCHAR(30) NOT NULL,
+    country_id VARCHAR(30) NOT NULL,
     created_at TIMESTAMP
 );
 
 //    логотип производителя товара (id, url логотипа, размер, дата создания),
-CREATE TABLE brand_logo (
+CREATE TABLE brand_logos (
     id SERIAL PRIMARY KEY,
     url VARCHAR(250) NOT NULL UNIQUE,
     size INT NOT NULL,
     created_at TIMESTAMP
 );
 
-//    фотография товара (id, url, размер, дата добавления),
-CREATE TABLE goods_photos (
+//    фотографии товара (id, url, размер, дата добавления),
+CREATE TABLE product_photos (
     id SERIAL PRIMARY KEY,
     url VARCHAR(250) NOT NULL UNIQUE,
     size INT NOT NULL,
@@ -56,17 +56,17 @@ CREATE TABLE goods_photos (
 //    отзыв о товаре (id товара, id пользователя, дата создания, рейтинг, содержание отзыва),
 CREATE TABLE reviews (
     id SERIAL PRIMARY KEY,
-    products_id INT NOT NULL,
-    clients_id INT NOT NULL,
+    product_id INT NOT NULL,
+    client_id INT NOT NULL,
     created_at TIMESTAMP,
-    ratings_id INT,
+    rating_id INT,
     text_content VARCHAR(500)
 );
 
-//    фотография к отзыву (id фотографии, id отзыва, url, размер, дата добавления),
-CREATE TABLE clients_photos (
+//    фотографии к отзыву (id фотографии, id отзыва, url, размер, дата добавления),
+CREATE TABLE client_product_photos (
     id SERIAL PRIMARY KEY,
-    reviews_id INT NOT NULL,
+    review_id INT NOT NULL,
     url VARCHAR(250) NOT NULL UNIQUE,
     size INT NOT NULL,
     created_at TIMESTAMP
@@ -75,7 +75,7 @@ CREATE TABLE clients_photos (
 //    клиент (id пользователя, id аватара, имя, фамилия, дата рождения, электронная почта, телефон, дата регистрации),
 CREATE TABLE clients (
     id SERIAL PRIMARY KEY,
-    avatars_id INT,
+    avatar_id INT,
     name VARCHAR(50) NOT NULL,
     surname VARCHAR(50) NOT NULL,
     birthday DATE NOT NULL,
@@ -95,22 +95,22 @@ CREATE TABLE avatars (
 //    избранное (id, id клиента),
 CREATE TABLE favorites (
     id SERIAL PRIMARY KEY,
-    clients_id INT UNIQUE NOT NULL
+    client_id INT UNIQUE NOT NULL
 );
 
 //    корзина (id, id клиента),
 CREATE TABLE carts (
     id SERIAL PRIMARY KEY,
-    clients_id INT UNIQUE NOT NULL
+    client_id INT UNIQUE NOT NULL
 );
 
 //    заказ (id, id клиента, id способа оплаты, id пункта выдачи, дата оформления, статус),
 CREATE TABLE orders (
     id SERIAl PRIMARY KEY,
-    clients_id INT NOT NULL,
-    payment_methods_id INT NOT NULL,
-    pick_up_points_id INT NOT NULL,
-    execution_statuses_id INT NOT NULL,
+    client_id INT NOT NULL,
+    payment_method_id INT NOT NULL,
+    pick_up_point_id INT NOT NULL,
+    execution_status_id INT NOT NULL,
     created_at TIMESTAMP
 );
 
@@ -146,8 +146,8 @@ CREATE TABLE ratings (
 
 //    заказ_товар - (id заказа, id товара, количество товара, цена товара, скидка),
 CREATE TABLE orders_products (
-    orders_id INT NOT NULL,
-    products_id INT NOT NULL,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
     product_amount INT NOT NULL,
     product_price NUMERIC,
     product_discount NUMERIC
@@ -156,7 +156,7 @@ CREATE TABLE orders_products (
 //  корзина_товар - (id корзины, id товара, количество товара, цена товара, скидка),
 CREATE TABLE carts_products (
     carts_id INT NOT NULL,
-    products_id INT NOT NULL,
+    product_id INT NOT NULL,
     product_amount INT NOT NULL,
     product_price NUMERIC,
     product_discount NUMERIC
@@ -165,6 +165,6 @@ CREATE TABLE carts_products (
 //    избранное_товар: (id избранного, id товара, дата добавления).
 CREATE TABLE favorites_products (
     favorites_id INT NOT NULL,
-    products_id INT NOT NULL,
+    product_id INT NOT NULL,
     date_added DATE NOT NULL
 );
