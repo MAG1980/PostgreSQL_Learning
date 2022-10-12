@@ -324,7 +324,7 @@ VALUES
   ('Cakewalk10',38,5,'2021-11-15 18:33:13'),
   ('Cakewalk11',39,11,'2022-04-23 22:40:59');
 
-  INSERT INTO goods_photos (created_at,url,size)
+  INSERT INTO product_photos (created_at,url,size)
   VALUES
     ('2021-07-19 07:35:50','http://whatsapp.com/settings','23224'),
     ('2021-04-16 14:08:31','https://youtube.com/one','58455'),
@@ -427,7 +427,9 @@ VALUES
     ('2020-09-15 05:27:41','http://yahoo.com/en-us','67872'),
     ('2020-09-07 10:55:03','https://ok.ru/item/21','93121');
 
-INSERT INTO reviews (created_at,products_id,clients_id,ratings_id,text_content)
+UPDATE product_photos SET product_id=floor(RANDOM()*(100+1));
+
+INSERT INTO reviews (created_at,product_id,client_id,rating_id,text_content)
 VALUES
   ('2021-06-29 06:07:33',26,96,2,'Donec est. Nunc ullamcorper, velit in aliquet lobortis, nisi nibh lacinia orci, consectetuer euismod est arcu ac orci. Ut semper pretium neque. Morbi quis urna. Nunc quis arcu vel quam dignissim pharetra. Nam ac nulla. In tincidunt congue turpis. In condimentum. Donec at arcu. Vestibulum'),
   ('2021-01-10 01:05:34',31,88,1,'Nullam vitae diam. Proin dolor. Nulla semper tellus id nunc interdum feugiat. Sed nec metus facilisis lorem tristique aliquet. Phasellus fermentum convallis ligula. Donec luctus aliquet odio. Etiam ligula tortor, dictum eu, placerat eget, venenatis a, magna. Lorem ipsum dolor sit amet, consectetuer adipiscing elit.'),
@@ -530,7 +532,7 @@ VALUES
   ('2021-01-04 18:24:27',10,16,2,'Nunc ac sem ut dolor dapibus gravida. Aliquam tincidunt, nunc ac mattis ornare, lectus ante dictum mi, ac mattis velit justo nec ante. Maecenas mi felis, adipiscing fringilla, porttitor vulputate, posuere vulputate, lacus. Cras interdum. Nunc sollicitudin commodo ipsum.'),
   ('2021-06-27 18:24:45',69,77,2,'vitae, sodales at, velit. Pellentesque ultricies dignissim lacus. Aliquam rutrum lorem ac risus. Morbi metus. Vivamus euismod');
 
-INSERT INTO clients_photos (created_at,reviews_id,url,size)
+INSERT INTO client_product_photos (created_at,review_id,url,size)
 VALUES
   ('2021-08-17 21:16:47',22,'http://www.yahoo.com/group/9','4747'),
   ('2021-09-03 21:45:24',89,'https://mail.ru/group/9','6832'),
@@ -633,7 +635,7 @@ VALUES
   ('2021-01-31 04:59:46',85,'http://zoom.us/one','6682'),
   ('2020-11-30 20:55:10',96,'http://netflix.com/fr','7984');
 
-INSERT INTO clients (avatars_id,name,surname,birthday,email,phone,registration_date)
+INSERT INTO clients (avatar_id,name,surname,birthday,email,phone,registration_date)
 VALUES
   (20,'Yolanda','Roberson','Sep 16, 2023','elementum.lorem@hotmail.gov','428-5750','2021-08-13 07:03:59'),
   (16,'Kaseem','Boyle','Nov 2, 2021','etiam.imperdiet@rambler.su','1-307-644-7170','2021-07-18 03:16:33'),
@@ -839,7 +841,7 @@ VALUES
   ('2020-09-15 05:27:41','http://yahoo.com/en-us','67872'),
   ('2020-09-07 10:55:03','https://ok.ru/item/21','93121');
 
-INSERT INTO carts (clients_id)
+INSERT INTO carts (client_id)
 VALUES
   (1),
   (2),
@@ -942,7 +944,7 @@ VALUES
   (99),
   (100);
 
-INSERT INTO favorites (clients_id)
+INSERT INTO favorites (client_id)
 VALUES
   (100),
   (99),
@@ -1045,7 +1047,7 @@ VALUES
   (2),
   (1);
 
-INSERT INTO orders (clients_id,payment_methods_id,pick_up_points_id,created_at,execution_statuses_id)
+INSERT INTO orders (client_id,payment_method_id,pick_up_point_id,created_at,execution_status_id)
 VALUES
   (1,1,92,'2022-05-15 04:01:19',2),
   (2,2,76,'2023-06-06 20:09:44',4),
@@ -1274,7 +1276,7 @@ VALUES
  ('Хорошо'),
  ('Отлично');
 
-INSERT INTO orders_products (orders_id,products_id,product_amount,product_price,product_discount)
+INSERT INTO orders_products (order_id,product_id,product_amount,product_price,product_discount)
 VALUES
   (100,15,20,'16.45',4),
   (74,95,18,'16.54',4),
@@ -1377,7 +1379,7 @@ VALUES
   (44,37,9,'13.05',4),
   (78,99,12,'13.48',9);
 
-INSERT INTO carts_products (carts_id,products_id,product_amount,product_price,product_discount)
+INSERT INTO carts_products (cart_id,product_id,product_amount,product_price,product_discount)
 VALUES
   (85,38,10,'11.19',2),
   (92,54,2,'11.64',1),
@@ -1480,7 +1482,7 @@ VALUES
   (54,82,13,'8.75',1),
   (7,91,19,'15.81',6);
 
-INSERT INTO favorites_products (favorites_id,products_id,date_added)
+INSERT INTO favorites_products (favorites_id,product_id,date_added)
 VALUES
   (5,15,'2023-05-26 09:10:16'),
   (98,38,'2022-06-05 08:23:17'),

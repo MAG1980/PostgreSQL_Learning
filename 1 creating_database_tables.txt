@@ -51,9 +51,10 @@ CREATE TABLE countries (
     name VARCHAR(30) NOT NULL UNIQUE
 );
 
-//    фотографии товара (id, url, размер, дата добавления),
+//    фотографии товара (id, id товара, url, размер, дата добавления),
 CREATE TABLE product_photos (
     id SERIAL PRIMARY KEY,
+    product_id INT NOT NULL,
     url VARCHAR(250) NOT NULL UNIQUE,
     size INT NOT NULL,
     created_at TIMESTAMP
