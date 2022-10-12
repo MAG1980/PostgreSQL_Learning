@@ -45,6 +45,12 @@ CREATE TABLE brand_logos (
     created_at TIMESTAMP
 );
 
+//    страны (id, название),
+CREATE TABLE countries (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(30) NOT NULL UNIQUE
+);
+
 //    фотографии товара (id, url, размер, дата добавления),
 CREATE TABLE product_photos (
     id SERIAL PRIMARY KEY,
