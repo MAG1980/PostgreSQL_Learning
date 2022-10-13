@@ -1,0 +1,12 @@
+    Создать пользовательскую функцию для расчёта полной стоимости заказа
+
+CREATE FUNCTION get_order_cost(order_number INTEGER)
+RETURNS NUMERIC AS
+$$
+SELECT
+ROUND(SUM(product_amount * product_price * (100 - product_discount) / 100), 2)
+FROM orders_products
+WHERE orders_products.order_id = order_number
+GROUP BY order_id;
+$$
+LANGUAGE SQL;
