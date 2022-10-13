@@ -1,0 +1,63 @@
+Создание представлений
+
+1. Найти десять самых дорогих заказов.
+В представление вывести номер, стоимость и дату заказа, идентификатор, почтовый индекс, город расположения пункта выдачи заказов, фамилию клиента, метод оплаты.
+
+CREATE VIEW most_costly_orders AS
+(WITH most_costly_orders AS
+  (SELECT
+   orders_products.order_id AS order_id,
+   ROUND(SUM(orders_products.product_amount * orders_products.product_price * (100 - orders_products.product_discount) / 100), 2) AS order_cost
+FROM orders_products
+JOIN products
+  ON products.id = orders_products.product_id
+GROUP BY order_id
+ORDER BY order_cost DESC NULLS LAST
+LIMIT 10)
+SELECT
+order_id,
+order_cost,
+orders.created_at AS order_date,
+pick_up_points.id AS pick_up_point_id,
+pick_up_points.postal_code AS postal_code,
+pick_up_points.city AS pick_up_point_city,
+clients.name AS client_surname,
+payment_methods.name AS payment_method
+FROM pick_up_points
+JOIN orders
+  ON orders.pick_up_point_id = pick_up_points.id
+JOIN most_costly_orders
+  ON most_costly_orders.order_id = orders.id
+JOIN clients
+  ON clients.id = orders.client_id
+JOIN payment_methods
+  ON payment_methods.id = orders.payment_method_id);
+
+
+2. Найти товары с фотографиями, добавленными клиентами, которые имеют размер более 5000 кБ.
+В представление вывести идентификатор товара, размер файла, идентификатор, имя и фамилию, возраст клиента, который загрузил этот файл.
+
+CREATE VIEW products_with_biggest_client_photo AS
+(WITH biggest_client_photo AS (SELECT
+products.id AS product_id,
+clients.id AS client_id,
+client_product_photos.size AS client_product_photo_size
+FROM products
+JOIN reviews
+  ON reviews.product_id = products.id
+JOIN client_product_photos
+  ON client_product_photos.review_id = reviews.id
+JOIN clients
+  ON clients.id = reviews.client_id
+WHERE client_product_photos.size > 5000
+ ORDER BY client_product_photo_size DESC)
+SELECT DISTINCT
+biggest_client_photo.product_id,
+client_product_photo_size,
+biggest_client_photo.client_id,
+clients.name || ' ' || clients.surname AS client_name,
+date_part('years',age(now(), clients.birthday)) AS client_age
+FROM biggest_client_photo
+JOIN clients
+  ON clients.id = biggest_client_photo.client_id
+ORDER BY product_id);
