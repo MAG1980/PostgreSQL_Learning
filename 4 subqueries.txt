@@ -1,0 +1,40 @@
+ Использование вложенных подзапросов неоптимально и его следует избегать.
+ Особенно вредно с точки зрения производительности использование коррелирующих подзапросов.
+ В большинстве случаев без использования вложенных подзапросов можно обойтись.
+ Более эффективными и современными является объединение таблиц и использование оконных функций.
+ В данном случае коррелирующие подзапросы испоьзуются в демонстрационных целях.
+
+ 1. Найти заказы, сделанные в течение августа 2022 года.
+ В отчёт вывести номер заказа, дату заказа, стоимость заказа, название города, в котором расположен пункт выдачи
+ заказа, имя и фамилию клиента.
+
+ SELECT
+    id AS order_id,
+    created_at,
+    (SELECT ROUND(SUM(product_amount * product_price * (100 - product_discount) / 100), 2)
+     FROM
+       (SELECT product_amount, product_price, product_discount, order_id
+  	    FROM orders_products
+  	    WHERE order_id = orders.id) AS specific_order
+     GROUP BY order_id) AS order_cost,
+    (SELECT city FROM pick_up_points WHERE id = orders.pick_up_point_id) AS pick_up_point_city,
+    (SELECT name || ' ' || surname FROM clients WHERE id = orders.client_id) AS client_name
+  FROM orders
+  WHERE created_at BETWEEN '2022-08-01' AND '2022-09-01';
+
+
+ 2. Найти три товара с наибольшим рейтингом.
+ В отчёт вывести идентификатор товара, название товара, название производителя, количество фотографий товара, количество заказов товара, количество отзывов на товар, рейтинг продукта.
+
+  SELECT
+  id AS product_id,
+  name AS product_name,
+  (SELECT name FROM manufacturers WHERE id = manufacturer_id) AS manufacturer_name,
+  (SELECT COUNT(product_photos.id) FROM product_photos WHERE product_id = products.id) AS photo_amount,
+  (SELECT COUNT(order_id) FROM orders_products WHERE product_id = products.id) AS orders_amount,
+  (SELECT COUNT(reviews.id) FROM reviews WHERE product_id = products.id) AS reviews_amount,
+  (SELECT ROUND(AVG(rating_id), 1) FROM reviews WHERE product_id = products.id) AS product_rating
+  FROM products
+  GROUP  BY id
+  ORDER BY product_rating DESC NULLS LAST
+  LIMIT 3;

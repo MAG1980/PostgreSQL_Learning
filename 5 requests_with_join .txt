@@ -1,0 +1,43 @@
+1. Найти десять самых длинных отзывов о товарах.
+В отчёт вывести наименование товра, идентификатор отзыва, идентификатор клиента, имя и фамилию клиента, который написал отзыв, количество символов в отзыве, текст отзыва.
+
+SELECT DISTINCT
+products.name AS product_name,
+reviews.id AS review_id,
+reviews.client_id,
+clients.name || ' ' || clients.surname AS reviewer_name,
+LENGTH(reviews.text_content) AS review_length,
+reviews.text_content
+FROM orders_products
+JOIN reviews
+  ON reviews.id = orders_products.product_id
+JOIN client_product_photos
+  ON client_product_photos.review_id = reviews.id
+JOIN products
+  ON products.id = orders_products.product_id
+JOIN clients
+  ON clients.id = reviews.client_id
+ORDER BY review_length DESC
+LIMIT 10;
+
+
+2. Найти товары, которых нет в наличии, но которые находятся в "избранном" у клиентов.
+В отчёт вывести идентификатор, название, цену, количество товаров, количество добавлений в "избранное".
+
+SELECT
+products.id AS product_id,
+products.name AS product_name,
+products.price AS product_price,
+products.amount AS product_amount,
+COUNT(favorites.id) AS number_of_favorites_additions
+FROM
+clients
+JOIN favorites
+  ON favorites.client_id = clients.id
+JOIN favorites_products
+  ON favorites_products.favorites_id = favorites.id
+JOIN products
+  ON products.id = favorites_products.product_id
+WHERE products.amount = 0
+GROUP BY products.id
+ORDER BY number_of_favorites_additions DESC;
