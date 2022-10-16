@@ -1,3 +1,5 @@
+3. Создание внешних ключей
+
 ALTER TABLE products
   ADD CONSTRAINT product_category_id_fk
   FOREIGN KEY (category_id)

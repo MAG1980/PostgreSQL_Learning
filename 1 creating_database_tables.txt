@@ -1,3 +1,5 @@
+1. Создание таблиц базы данных
+
 postgres=# CREATE USER gb_user WITH PASSWORD 'gbsecurity';
 
 postgres=# CREATE DATABASE ozon;

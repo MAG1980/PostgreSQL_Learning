@@ -1,3 +1,5 @@
+2. Генерация тестовых данных
+
 INSERT INTO products (product_category_id,manufacturer_id,vendor_code,name,description,amount,price,discount,created_at)
 VALUES
   (65,77,'21733266-4',' Молот Тора','inceptos hymenaeos. Mauris ut quam vel sapien imperdiet ornare. In faucibus. Morbi vehicula. Pellentesque tincidunt tempus risus. Donec egestas. Duis ac arcu. Nunc mauris. Morbi non sapien molestie orci tincidunt adipiscing. Mauris',3925,'14.59',5,'2021-04-06 02:05:11'),

@@ -1,0 +1,220 @@
+10. Для одного из запросов, созданных в пункте 6, провести оптимизацию. В качестве отчета приложить планы выполнения запроса, ваш анализ и показать действия, которые улучшили эффективность запроса.
+
+Начинать оптимизацию запроса следует с построения и анализа его плана выполнения.
+
+Построим план выполнения следующего запроса с помощью команды EXPLAIN:
+
+ozon=> EXPLAIN SELECT DISTINCT
+ozon-> products.name AS product_name,
+ozon-> reviews.id AS review_id,
+ozon-> reviews.client_id,
+ozon-> clients.name || ' ' || clients.surname AS reviewer_name,
+ozon-> LENGTH(reviews.text_content) AS review_length,
+ozon-> reviews.text_content
+ozon-> FROM orders_products
+ozon-> JOIN reviews
+ozon->   ON reviews.id = orders_products.product_id
+ozon-> JOIN client_product_photos
+ozon->   ON client_product_photos.review_id = reviews.id
+ozon-> JOIN products
+ozon->   ON products.id = orders_products.product_id
+ozon-> JOIN clients
+ozon->   ON clients.id = reviews.client_id
+ozon-> ORDER BY review_length DESC
+ozon-> LIMIT 10;
+                                                                                                 QUERY PLAN
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+ Limit  (cost=30.83..31.01 rows=10 width=286)
+   ->  Unique  (cost=30.83..32.58 rows=100 width=286)
+   ->  Sort  (cost=30.83..31.08 rows=100 width=286)               Sort Key: (length((reviews.text_content)::text)) DESC, products.name, reviews.id, reviews.client_id, ((((clients.name)::text || ' '::text) || (clients.surname)::text)), reviews.text_content
+               ->  Hash Join  (cost=22.84..27.51 rows=100 width=286)
+                     Hash Cond: (reviews.client_id = clients.id)
+                     ->  Hash Join  (cost=17.59..21.23 rows=100 width=250)
+                           Hash Cond: (reviews.id = products.id)
+                           ->  Hash Join  (cost=9.77..13.15 rows=100 width=223)
+                                 Hash Cond: (client_product_photos.review_id = reviews.id)
+                                 ->  Seq Scan on client_product_photos  (cost=0.00..2.00 rows=100 width=4)
+                                 ->  Hash  (cost=8.52..8.52 rows=100 width=219)
+                                       ->  Hash Join  (cost=6.25..8.52 rows=100 width=219)
+                                             Hash Cond: (orders_products.product_id = reviews.id)
+                                             ->  Seq Scan on orders_products  (cost=0.00..2.00 rows=100 width=4)
+                                             ->  Hash  (cost=5.00..5.00 rows=100 width=215)
+                                                   ->  Seq Scan on reviews  (cost=0.00..5.00 rows=100 width=215)
+                           ->  Hash  (cost=6.25..6.25 rows=125 width=39)
+                                 ->  Seq Scan on products  (cost=0.00..6.25 rows=125 width=39)
+                     ->  Hash  (cost=4.00..4.00 rows=100 width=16)
+                           ->  Seq Scan on clients  (cost=0.00..4.00 rows=100 width=16)
+(21 rows)
+
+Количество строк в результирующей выборке ограничено LIMIT  10 - это хорошо.
+Приблизительно полная стоимость подготовки запроса составляет 30.83, а полная стоимость выполнения запроса - 31.01.
+
+Seq Scan on client_product_photos  (cost=0.00..2.00 rows=100 width=4) - производится последовательное сканирование строк
+ в таблице client_product_photos - при больших объёмах данных это неоптимально.
+
+Seq Scan on orders_products  (cost=0.00..2.00 rows=100 width=4) - производится последовательный перебор строк в таблице
+orders_products -  при больших объёмах данных это неоптимально.
+
+Seq Scan on reviews  (cost=0.00..5.00 rows=100 width=215) - производится последовательное сканирование строк в таблице
+reviews - при больших объёмах данных это неоптимально.
+
+Seq Scan on products  (cost=0.00..6.25 rows=125 width=39) - производится последовательное сканирование строк в таблице
+products - при больших объёмах данных это неоптимально.
+
+Seq Scan on clients  (cost=0.00..4.00 rows=100 width=16) - производится последовательное сканирование строк в таблице
+clients - при больших объёмах данных это неоптимально.
+
+Потребуется создать индексы для таблиц client_product_photos, orders_products, reviews, products, clients.
+
+Для оптимизации запросов нужно создать индексы для столбцов, по которым выполняется
+фильтрация,
+сортировка,
+объединение.
+
+В данном запросе осуществляется сортировка по значению  review_length, которое получено путём вычислений:
+LENGTH(reviews.text_content) AS review_length, поэтому для review_length индекс создать невозможно.
+
+В данном запросе объединяются таблицы orders_products, reviews, client_product_photos, products, clients.
+Проанализируем имеющиеся в этих таблицах индексы и создадим недостающие для столбцов, по которым осуществляется
+объединение.
+
+ozon=> SELECT indexname FROM pg_indexes WHERE tablename = 'reviews';
+  indexname
+--------------
+ reviews_pkey
+(1 строка)
+Имеется первичный ключ. Дополнительные индексы для оптимизации указанного запроса не требуются.
+
+
+ozon=> SELECT indexname FROM pg_indexes WHERE tablename = 'orders_products';
+ indexname
+-----------
+(0 строк)
+В таблице orders_products ни одного индекса.
+Нужно создать индексы для внешнего ключа таблицы product_id, который используется в оптимизируемом запросе:
+CREATE INDEX  orders_products_product_id_idx ON orders_products (product_id);
+
+
+ozon=> SELECT indexname FROM pg_indexes WHERE tablename = 'client_product_photos';
+           indexname
+-------------------------------
+ client_product_photos_pkey
+ client_product_photos_url_key
+(2 строки)
+Имеются индексы для столбца первичного ключа.
+Нужно добавить индексы для внешнего ключа  review_id.
+CREATE INDEX  client_product_photos_review_id_idx ON client_product_photos (review_id);
+
+
+ozon=> SELECT indexname FROM pg_indexes WHERE tablename = 'reviews';
+  indexname
+--------------
+ reviews_pkey
+(1 строка)
+Имеются индексы для столбца первичного ключа. Дополнительные индексы не требуются.
+
+
+ozon=> SELECT indexname FROM pg_indexes WHERE tablename = 'products';
+        indexname
+--------------------------
+ products_pkey
+ products_vendor_code_key
+(2 строки)
+Имеются индексы для столбца первичного ключа. Дополнительные индексы не требуются.
+
+
+ozon=> SELECT indexname FROM pg_indexes WHERE tablename = 'orders_products';
+ indexname
+-----------
+(0 строк)
+Для оптимизации данного запроса достаточно добавить индексы только для стобца внешнего ключа product_id (дополнительные
+индексы увеличивают нагрузку на СУБД, поэтому индексы на остальные внешние ключи не добавляю).
+
+CREATE INDEX  orders_products_product_id_idx ON orders_products (product_id);
+
+
+ozon=> SELECT indexname FROM pg_indexes WHERE tablename = 'clients';
+     indexname
+-------------------
+ clients_email_key
+ clients_phone_key
+ clients_pkey
+(3 строки)
+Имеются индексы для столбца первичного ключа, также для стобцов, содержащих уникальные данные, созданные СУБД
+автоматически. Дополнительные индексы не требуются.
+
+
+ozon=> SELECT indexname FROM pg_indexes WHERE tablename = 'reviews';
+  indexname
+--------------
+ reviews_pkey
+(1 строка)
+Имеются индексы только для столбца первичного ключа. Требуется добавить индексы для столбца client_id.
+
+CREATE INDEX reviews_client_id_idx ON  reviews (client_id);
+
+
+После создания недостающих индексов повторно запускаем EXPLAIN.
+Т.к. объём тестовых данных небольшой, СУБД не использует существующие индексы, а выполняет последовательный перебор
+строк, т.к. в данном случае вся информация, хранящаяся в БД, помещается в оперативной памяти и поэтому последовательное
+сканирование выполняется быстрее.
+Чтобы убедиться в том, что СУБД при необходимости сможет использовать созданные индексы, придётся запретить СУБД
+использовать последовательное сканирование. Для этого нужно ввести команду:
+
+SET enable_seqscan TO OFF; - эту команду ни в коем случае нельзя вводить на рабочем сервере, т.к. это приведёт к падению
+ производительности БД.
+
+ В результате повторного построения плана выполнения запроса получаем следующий результат:
+
+                                                                                                  QUERY PLAN
+
+ --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ -----
+  Limit  (cost=87.83..88.00 rows=10 width=286)
+    ->  Unique  (cost=87.83..89.59 rows=101 width=286)
+          ->  Sort  (cost=87.83..88.08 rows=101 width=286)
+                Sort Key: (length((reviews.text_content)::text)) DESC, products.name, reviews.id, reviews.client_id, (((
+                (clients.name)::text || ' '::text) || (clients.surname)::text)), reviews.text_con tent
+                ->  Hash Join  (cost=17.47..84.46 rows=101 width=286)
+                      Hash Cond: (reviews.client_id = clients.id)
+                      ->  Merge Join  (cost=0.57..66.53 rows=101 width=250)
+                            Merge Cond: (reviews.id = orders_products.product_id)
+                            ->  Merge Join  (cost=0.43..51.37 rows=100 width=258)
+                                  Merge Cond: (reviews.id = products.id)
+                                  ->  Merge Join  (cost=0.29..31.79 rows=100 width=219)
+                                        Merge Cond: (reviews.id = client_product_photos.review_id)
+                                        ->  Index Scan using reviews_pkey on reviews  (cost=0.14..16.64 rows=100 width=215)
+                                        ->  Index Only Scan using client_product_photos_review_id_idx on client_product_photos  (cost=0.14..13.64 rows=100 width=4)
+                                  ->  Index Scan using products_pkey on products  (cost=0.14..18.02 rows=125 width=39)
+                            ->  Index Only Scan using orders_products_product_id_idx on orders_products  (cost=0.14..13.66 rows=101 width=4)
+                      ->  Hash  (cost=15.65..15.65 rows=100 width=16)
+                            ->  Index Scan using clients_pkey on clients  (cost=0.14..15.65 rows=100 width=16)
+ (18 rows)
+
+ Limit  (cost=87.83..88.00 rows=10 width=286) - затраты на подготовку к выполнению запроса и выполнение запроса выросли
+ почти в 2,84 раза.
+ Это произошло потому, что теперь СУБД для получения данных не использует последовательное сканирование данных в
+ таблицах несмотря на то, что в данном случае это было бы оптимально.
+ Вместо этого СУБД во всех случаях теперь выполняет индексное сканирование:
+
+ ->  Index Scan using reviews_pkey on reviews  (cost=0.14..16.64 rows=100 width=215)
+ ->  Index Only Scan using client_product_photos_review_id_idx on client_product_photos  (cost=0.14..13.64 rows=100 width=4)
+->  Index Scan using products_pkey on products  (cost=0.14..18.02 rows=125 width=39)
+->  Index Only Scan using orders_products_product_id_idx on orders_products  (cost=0.14..13.66 rows=101 width=4)
+
+Не смотря на то, что в данном случае опытным путём было установлено снижение производительности БД при использовании
+индексного сканирования, при работе с огромными объёмами данных применение индексного сканирования даст значительный
+прирост производительности.
+
+Вывод:
+не имеет смысла оптимизировать запросы на данных, которые сильно отличаются от используемых в рабочем приложении,
+поэтому принято строить индексы только на реальных данных.
+
+В завершение разрешаем СУБД использовать последовательное сканирование, т.к. иногда оно является более оптимальным
+вариантом:
+SET enable_seqscan TO ON;
+
+Для оптимизации данной базы данных необходимо заменить использование таблиц-справочников (ratings и countries) на ENUM:
+https://habr.com/ru/post/353556/
